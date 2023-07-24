@@ -30,6 +30,17 @@ let options = {
   ]
 };
 
+const bodyPartsHangman = {
+  1: drawFrame,
+  2: drawHead,
+  3: drawBody,
+  4: drawLeftArm,
+  5: drawRightArm,
+  6: drawLeftLeg,
+  7: drawRightLeg,
+};
+
+
 
 let maxLives = 7; // maximum lives
 let remainingLives = 0; // remaining lives in the initializeGame() function
@@ -38,6 +49,8 @@ let wordHint = ""; // the hint for the chosen word
 let winLetters = 0; // it increments when a correct letter is clicked
 let loseLetters = 0;// it increments when an incorrect letter is clicked
 let wordAlreadyChosen = false; //flag used for choosing a single word per selected category in the current game
+let firstLetterCode = 65;
+let lastLetterCode = 91;
 
 
 displayLives(remainingLives);
@@ -54,7 +67,7 @@ function hideElements() {
 
 //display game options
 function displayGameOptions() {
-  gameOptions.innerHTML += `<h3>Please select an option</h3>`;
+  displayMessage("option", `<h3>Please select an option</h3>`);
   let optButton = document.createElement("div");
   for (let optValue in options) {
     optButton.innerHTML += `<button class="options" onclick="generateWord('${optValue}')">${optValue}</button>`;
@@ -103,7 +116,7 @@ function generateWord(option) {
 
 function generateLetters() {
   let btnLetters = "";
-  for(let i = 65; i < 91; i++) {
+  for(let i = firstLetterCode; i < lastLetterCode; i++) {
     let letter = String.fromCharCode(i);
     btnLetters += letter;
   }
@@ -147,28 +160,25 @@ function initializeGame() {
             dashes[i].innerText = char;
             ++winLetters;
           }
-          console.log(winLetters);
-          console.log(chosenWord.length);
 
           if (winLetters === chosenWord.length) {
             hideElements();
-            winMessage.innerHTML = `<h2>You won!</h2><p>The word was <span>${chosenWord}</span></p>`;
+            displayMessage("result",`<h2>You won!</h2><p>The word was <span>${chosenWord}</span></p>`);
             reset.classList.remove("hide");
           }
         }
       } else {
-        loseLetters++;
+        ++loseLetters;
         drawHangman(loseLetters);
-        maxLives--;
+        --maxLives;
         remainingLives = maxLives;
         displayLives(remainingLives);
         if (remainingLives === 0) {
           hideElements();
-          winMessage.innerHTML = `<h2>You lost!</h2><p>The word was <span>${chosenWord}</span></p>`;
+          displayMessage("result", `<h2>You lost!</h2><p>The word was <span>${chosenWord}</span></p>`);
           reset.classList.remove("hide");
         }
       }
-
       clickedButton.disabled = true; 
     }
   });
@@ -176,14 +186,14 @@ function initializeGame() {
 
 function displayLives(life) {
   if (life > 0) {
-    lives.innerHTML = `You have ${life} ${life === 1 ? "life" : "lives"} left!`;
+    displayMessage("lives",`You have ${life} ${life === 1 ? "life" : "lives"} left!`);
   } else {
-    lives.innerHTML = "";
+    displayMessage("lives", "");
   }
 }
 
 function displayHint(hintOption) {
-  hint.innerHTML += `<p><strong>${hintOption}</strong></p>`;
+  displayMessage("hint",`<p><strong>${hintOption}</strong></p>`);
 }
 
 
@@ -195,67 +205,74 @@ hintButton.addEventListener("click", function(){
   }
 });
 
-function drawHangman(bodyPart) {
-  switch(bodyPart) {
-    case 1: //frame
-      context.beginPath();
-      context.moveTo(180, 250);
-      context.lineTo(50, 250);
-      context.moveTo(80,250);
-      context.lineTo(60,20);
-      context.moveTo(60,20);
-      context.lineTo(140,20);
-      context.moveTo(140,20);
-      context.lineTo(140,45);
-      context.stroke();
-      break;
+function displayMessage(divId, message) {
+  const currentDiv = document.getElementById(divId);
+  if(currentDiv) {
+    currentDiv.innerHTML = message;
+  }
+} 
 
-    case 2: //head
-      context.beginPath();
-      context.arc(140,70,25,0,2*Math.PI);
-      context.closePath();
-      context.stroke();
-      break;
-
-    case 3: //body
-      context.beginPath();
-      context.moveTo(140,95);
-      context.lineTo(140,180);
-      context.stroke();
-      break;
-
-    case 4: //left arm
-      context.beginPath();
-      context.moveTo(140,110);
-      context.lineTo(110,140);
-      context.stroke();
-      break;
-
-    case 5: //right arm
-      context.beginPath();
-      context.moveTo(140,110);
-      context.lineTo(170,140);
-      context.stroke(); 
-      break;
-
-    case 6: //left leg
-      context.beginPath();
-      context.moveTo(140,180);
-      context.lineTo(110,210);
-      context.stroke();
-      break;
-
-    case 7: //right leg
-      context.beginPath();
-      context.moveTo(140,180);
-      context.lineTo(170,210);
-      context.stroke();
-      break;
-    default: break;
+function drawHangman(bodyPartNumber) {
+  const drawFunction = bodyPartsHangman[bodyPartNumber];
+  if (drawFunction) {
+    drawFunction();
   }
 }
 
+function drawFrame() {
+  context.beginPath();
+  context.moveTo(180, 250);
+  context.lineTo(50, 250);
+  context.moveTo(80, 250);
+  context.lineTo(60, 20);
+  context.moveTo(60, 20);
+  context.lineTo(140, 20);
+  context.moveTo(140, 20);
+  context.lineTo(140, 45);
+  context.stroke();
+}
 
+function drawHead() {
+  context.beginPath();
+  context.arc(140, 70, 25, 0, 2 * Math.PI);
+  context.closePath();
+  context.stroke();
+}
+
+function drawBody() {
+  context.beginPath();
+  context.moveTo(140, 95);
+  context.lineTo(140, 180);
+  context.stroke();
+}
+
+function drawLeftArm() {
+  context.beginPath();
+  context.moveTo(140, 110);
+  context.lineTo(110, 140);
+  context.stroke();
+}
+
+function drawRightArm() {
+  context.beginPath();
+  context.moveTo(140, 110);
+  context.lineTo(170, 140);
+  context.stroke();
+}
+
+function drawLeftLeg() {
+  context.beginPath();
+  context.moveTo(140, 180);
+  context.lineTo(110, 210);
+  context.stroke();
+}
+
+function drawRightLeg() {
+  context.beginPath();
+  context.moveTo(140, 180);
+  context.lineTo(170, 210);
+  context.stroke();
+}
 
 displayGameOptions();
 generateButtons();
